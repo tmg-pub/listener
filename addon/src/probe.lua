@@ -39,12 +39,18 @@ end
 -- Update function (called periodically).
 --
 function Main.UpdateProbe()
+
+    local prefer1, prefer2 = "target", "mouseover"
+    if Main.db.profile.prefer_mouseover then 
+        prefer1 = "mouseover"
+        prefer2 = "target"
+    end
 	
 	local unit, unitname, unitguid
-	if UnitExists( "target" ) then 
-		unit = "target"
-	elseif UnitExists( "mouseover" ) then
-		unit = "mouseover"
+	if UnitExists( prefer1 ) then 
+		unit = prefer1
+	elseif UnitExists( prefer2 ) then
+		unit = prefer2
 	end
 	
 	if not UnitIsPlayer( unit ) then unit = nil end

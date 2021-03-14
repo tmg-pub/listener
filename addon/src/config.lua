@@ -188,11 +188,9 @@ local DB_DEFAULTS = {
 		auto_clear_readmark = true;
 		
 		-------------------------------------------------------------
-		-- Flash the taskbar when a notification is received 
-		-- (whenever a sound plays).
+		-- Prefer mouse hover over targeting for target selection.
 		--
-		-- replaced with more specific options.
-		--flashclient      = true;
+        prefer_mouseover = true;
 		
 		-------------------------------------------------------------
 		-- Time that needs to pass before another beep is 
@@ -205,7 +203,7 @@ local DB_DEFAULTS = {
 		-- hear another one until the messages stop coming
 		-- for at least 3 seconds.
 		--
-		beeptime         = 3;
+		beeptime = 3;
 		
 		-------------------------------------------------------------
 		-- RPConnect is an addon that's meant for cross-realm RP, 
@@ -630,16 +628,6 @@ Main.config_options = {
 			order = 1;
 			args  = {
 			
-				--[[
-				playsound_target = {
-					order = 61;
-					name = L["Target Emote Sound"];
-					desc = L["Play a sound when your targeted player emotes."];
-					type = "toggle";
-					set = function( info, val ) Main.db.profile.sound.target = val end;
-					get = function( info ) return Main.db.profile.sound.target end;
-				};]]
-				
 				soundthrottle = {
 					order = 62;
 					name = L["Sound Throttle Time"];
@@ -652,26 +640,7 @@ Main.config_options = {
 					set = function( info, val ) Main.db.profile.beeptime = val end;
 					get = function( info ) return Main.db.profile.beeptime end;
 				};
---[[				
-				playsound2 = {
-					order = 63;
-					name = L["Poke Sound"];
-					desc = L["Play a sound when a person directs a stock emote at you. (e.g. /poke)"];
-					type = "toggle";
-					set = function( info, val ) Main.db.profile.sound.poke = val end;
-					get = function( info ) return Main.db.profile.sound.poke end;
-				};
-	]]
---[[	
-				flash1 = {
-					order = 65;
-					name = L["Flash Taskbar Icon"];
-					desc = L["Flash Taskbar Icon when Listener plays a sound."];
-					type = "toggle";
-					set = function( info, val ) Main.db.profile.flashclient = val end;
-					get = function( info ) return Main.db.profile.flashclient end;
-				};
-	]]			
+
 				shorten_names = {
 					order = 71;
 					name = L["Shorten Names"];
@@ -725,6 +694,19 @@ Main.config_options = {
 						return Main.db.profile.auto_clear_readmark
 					end;
 				};
+                
+                prefer_mouseover = {
+					order = 84;
+					name  = L["Prefer Mouseover"];
+					desc  = L["If this is set, hovering the mouse over players will take precedence over targeting them, so you can preserve your head facing while still inspecting other players. Maximum immersion!"];
+					type  = "toggle";
+					set   = function( info, val )
+						Main.db.profile.prefer_mouseover = val
+					end;
+					get = function( info )
+						return Main.db.profile.prefer_mouseover
+					end;
+                };
 				
 				notify_target = {
 					order  = 90;
