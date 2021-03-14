@@ -1,0 +1,62 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+  <Script file="ListenerBarButton.lua"/>
+  <Button name="ListenerBarButton" intrinsic="true" enableMouse="true">
+    <Size x="15" y="15"/>
+    <Layers>
+      <Layer level="BACKGROUND">
+        <Texture parentKey="tex_shadow" file="Interface/Addons/Listener/texture/uibuttons">
+          <Size x="16" y="16"/>
+          <Anchors>
+            <Anchor point="TOPLEFT" x="1" y="-1"/>
+          </Anchors>
+          <Color r="0" g="0" b="0" a="0.5"/>
+        </Texture>
+      </Layer>
+      <Layer level="ARTWORK">
+        <Texture parentKey="tex" file="Interface/Addons/Listener/texture/uibuttons">
+          <Size x="16" y="16"/>
+          <Anchors>
+            <Anchor point="TOPLEFT" />
+          </Anchors>
+          <Color r="1" g="1" b="1" a="0.8"/>
+        </Texture>
+      </Layer>
+      <Layer level="OVERLAY">
+        <Texture parentKey="tex_hl" file="Interface/Addons/Listener/texture/uibuttons" hidden="true">
+          <Size x="16" y="16"/>
+          <Anchors>
+            <Anchor point="TOPLEFT" />
+          </Anchors>
+          <Color r="0.3" g="0.3" b="0.3" a="1.0"/>
+        </Texture>
+      </Layer>
+    </Layers>
+    <Scripts> 
+      <OnLoad>
+        ListenerAddon.BarButton_Init( self )
+      </OnLoad>
+      <OnEnter>
+        if self:GetButtonState() == "NORMAL" then
+          self.tex_hl:Show()
+        end
+      </OnEnter>
+      <OnLeave>
+        self.tex_hl:Hide()
+      </OnLeave>
+      <OnMouseDown>
+        self.tex:SetPoint("TOPLEFT", 0, -1)
+        self.tex_shadow:SetPoint("TOPLEFT", 1, -2)
+        self.tex_hl:Hide()
+        self.tex_hl:SetPoint("TOPLEFT", 0, -1)
+      </OnMouseDown>
+      <OnMouseUp>
+        self.tex:SetPoint("TOPLEFT", 0, 0)
+        self.tex_shadow:SetPoint("TOPLEFT", 1, -1)
+        if self:IsMouseOver() then
+          
+          self.tex_hl:Show()
+        end
+      </OnMouseUp>
+    </Scripts>
+  </Button>
+</Ui>

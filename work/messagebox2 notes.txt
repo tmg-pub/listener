@@ -1,0 +1,17 @@
+messagebox
+	regionframe
+		bubble
+			bg
+			name		} optional if close together messages
+			timestamp	}
+			icon		}
+			text
+			highlight
+		
+
+message attributes:
+	id		used to manipulate
+	font		family and style!
+	colour		might be weird with modern formats
+	
+	

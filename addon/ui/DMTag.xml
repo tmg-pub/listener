@@ -1,0 +1,40 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+  <Script file="DMTag.lua" />
+  
+	<Font name="ListenerDMTagFont" inherits="GameFontHighlightSmall" height="14" virtual="true">
+		<Color r="1.0" g="1.0" b="1.0"/>
+	</Font>
+  
+  <Button name="ListenerDMTag" intrinsic="true" enableMouse="true" frameStrata="HIGH">
+    <Size x="15" y="15"/>
+    <Layers>
+      <Layer level="BACKGROUND">
+        <Texture parentKey="bg" setallpoints="true">
+          <Color r="0" g="0" b="0" a="1.0"/>
+        </Texture>
+      </Layer>
+      
+      <Layer level="ARTWORK">
+        <FontString parentKey="text">
+          
+          <Anchors>
+            <Anchor point="CENTER" />
+          </Anchors>
+          
+          <Color r="1" g="1" b="1" a="1.0"/>
+        </FontString>
+      </Layer>
+      
+    </Layers>
+    <Scripts> 
+      <OnLoad>
+        self.text:SetFontObject( ListenerDMTagFont )
+        ListenerAddon.DMTag.OnLoad( self )
+      </OnLoad>
+      <OnMouseDown>
+      </OnMouseDown>
+      <OnMouseUp>
+      </OnMouseUp>
+    </Scripts>
+  </Button>
+</Ui>

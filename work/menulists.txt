@@ -1,0 +1,25 @@
+SNOOPER
+
+---------------------------------
+ filters menu
+ id is MAIN or SNOOPER
+FILTERS_id
+FILTERS_id_CHANNELS
+FILTERS_id_MISC
+
+FRAMEOPTS_#
+FRAMEOPTS_#_NOTIFY
+FRAMEOPTS_#_PLAYERS
+FRAMEOPTS_#_PLAYERS_#
+FRAMEOPTS_#_RAID
+--FRAMEOPTS_#_FILTERS_MAIN
+--FRAMEOPTS_#_FILTERS_MAIN_<etc>
+
+the FILTERS_xyz is a bit iffy
+snooper just uses straight up FILTERS_SNOOPER, and handles it like that
+the frameopts handler needs the FRAMEOPTS_xyz_FILTERS name to find the
+filters tag and populate the menu properly.
+
+UPDATE, while not ideal, the FRAMEOPTS_x_ tag is not present with the filters menu
+its just kept track by recording the frameopts index when opening the upper
+menu

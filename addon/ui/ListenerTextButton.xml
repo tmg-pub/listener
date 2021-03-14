@@ -1,0 +1,55 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+  <Script file="ListenerTextButton.lua"/>
+  
+	<Font name="ListenerBarFont" inherits="GameFontNormal" height="14" virtual="true">
+		<Color r="1.0" g="1.0" b="1.0"/>
+	</Font>
+  
+  <Button name="ListenerTextButton" intrinsic="true" enableMouse="true">
+    <Size x="30" y="15"/>
+    <Layers>
+      <Layer level="BACKGROUND">
+        <FontString parentKey="text" setallpoints="true">
+        </FontString>
+      </Layer>
+      <Layer level="ARTWORK">
+        <Texture setallpoints="true" parentKey="hl" hidden="true">
+          <Color r="1" g="1" b="1" a="1"/>
+        </Texture>
+      </Layer>
+    </Layers>
+    <Scripts> 
+      <OnLoad>
+        ListenerAddon.TextButton_Init( self )
+        self.clickable = true 
+        self.hl:SetBlendMode( "ADD" )
+        -- todo: adjust appearance if they are using a bright colored theme
+      </OnLoad>
+      <OnEnter>
+        local state = self:GetButtonState()
+        self.hl:Show()
+        
+        if state == "NORMAL" then
+          self.hl:SetColorTexture( 0.1, 0.1, 0.1 )
+          
+        elseif state == "PUSHED" then
+          self.hl:SetColorTexture( 0.2, 0.2, 0.2 )
+        end
+      </OnEnter>
+      <OnLeave>
+        self.hl:Hide()
+      </OnLeave>
+      <OnMouseDown>
+        if self.clickable then
+          -- todo : set overlay color according to parent color
+          --if self:GetParent().bar2:Get
+          
+          self.hl:SetColorTexture( 0.2, 0.2, 0.2 )
+        end
+      </OnMouseDown>
+      <OnMouseUp>
+        self.hl:SetColorTexture( 0.1, 0.1, 0.1 )
+      </OnMouseUp>
+    </Scripts>
+  </Button>
+</Ui>

@@ -1,0 +1,8 @@
+<Ui xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
+  <Include file="ui\HelpNote.xml"/>
+  <Include file="ui\ListenerBarButton.xml"/>
+  <Include file="ui\ListenerTextButton.xml"/>
+  <Include file="ui\ListenerFrame.xml"/>
+  <Include file="ui\CopyFrame.xml"/>
+  <Include file="ui\DMTag.xml"/>
+</Ui>

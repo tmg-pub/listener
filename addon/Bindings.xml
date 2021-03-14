@@ -1,0 +1,8 @@
+<Bindings>
+  <Binding name="LISTENER_TOGGLEFILTER" header="LISTENER">
+    ListenerAddon.ToggleCommand( nil, "toggle" )
+  </Binding>
+  <Binding name="LISTENER_MARKUNREAD">
+    ListenerAddon.MarkAllRead()
+  </Binding> 
+</Bindings>

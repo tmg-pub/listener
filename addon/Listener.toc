@@ -1,0 +1,30 @@
+## Interface: @@toc_version_retail@@
+## Title: Listener
+## Author: Tammya-MoonGuard
+## Version: @@addon_version@@
+## Notes: Chat assistant.
+## SavedVariables: ListenerAddonSaved
+## SavedVariablesPerCharacter: ListenerChatHistory
+## OptionalDeps: totalRP3 MyRolePlay XRP
+embeds.xml
+
+src\init.lua
+src\sharedmedia.lua
+
+locale\index.xml
+
+src\listener.lua
+src\filter_menu.lua
+src\config.lua
+src\config_frame.lua
+src\dmtags.lua
+src\keywords.lua
+src\raid_roster.lua
+src\minimapbutton.lua
+src\snoop2.lua
+src\probe.lua
+src\help.lua
+src\console.lua
+src\sound.lua
+
+ui.xml

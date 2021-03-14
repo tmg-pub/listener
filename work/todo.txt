@@ -1,0 +1,75 @@
+
+check that new files are there for people who update
+context menu for right clicking messages
+sato: wants option to have snooper prefer mouseover over target
+
+---------------------------------------
+
+DONE:
+WINDOWS
+[ ] MAIN
+[ ] SNOOPER
+[ ] CUSTOM1	
+-------
+MAIN    >
+	OPTIONS
+	...
+	SETTINGS
+SNOOPER >
+	SNOOPER OPTIONS
+	...
+	SETTINGS
+CUSTOM1 >
+	OPTIONS
+	...
+	SETTINGS
+-------
+DM TAGS >
+	ENABLE
+	MARK ALL
+SETTINGS
+
+yve wants the titlebar to be gone (done)
+player filter menu is broken (done)
+merge the listener minimap menu together, having the "hide" values part of the frame dropdown menues only (done)
+snooper only shows for target (done)
+merge the frame settings into the main settings panel (done)
+dont hide snooper title bar for consistency - that should be a main option, to hide titlebars (done)
+hide "close" button (done)
+combat hide is broken (done)
+tooltip for snooper>filter menu	(done)
+sylvia bug with channels		(not found)
+separate taskbar flashing and sounds			(done)
+custom sounds (maybe next version)			(done)
+npc emote text wasnt keyword highlighted in listener window		(who cares)
+allow more mouse options for other windows							(done.)
+	add Enable Mouse feature for all windows						(done.)
+	when shift is held, it enabkes mouse							(done.)
+	there is no Enable Scroll option for normal windows (as that doesnt make sense)		(done.)
+option to not clear readmark automatically			(added)
+link bug (when posting two links, the latter doesnt work.) (fixed)
+improved keyword highlighting				(fixed)
+kyphaz keywords bug					(fixed! needs testing.)
+normalize showing of resize thumb			(fixed!)
+move console commands to separate file and clean them up (and fix them)	(done)
+---
+the poke sound should cancel beeps.								(fixed!)
+no beep for WHISPER_INFORM (and other messages that shouldnt beep according to the ignor filter (fixed!)
+sort target beep by snooper.									(fixed!)
+snooper shouldnt close when the mouse is focusing it.						(fixed!)
+check out why whispering didnt clear readmark. (this should be intended behavior, but check anyway) (fixed!)
+copy link needs to reset the character limit in the editbox					(fixed!)
+clickblock is set wehn messages are added to other windows?? (refreshing issue?)		(fixed!)
+
+rp connect should include RAID WARNING.								(fixed!)
+rp connect should be on the event level
+
+=========
+FUTURE VERSIONS
+temporary windows
+context menu for right clicking messages
+	create new window for this person
+	create new window for this channel
+	
+request: snooper only shows when you target
+snooper fades for some reason when changing main options (esp the tab size)

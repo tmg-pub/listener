@@ -1,0 +1,126 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+  <Script file="CopyFrame.lua"/>
+  <Script file="ListenerFrameMenu.lua"/>
+  
+  <!-- ListenerFrame definition. -->
+  <Frame name="ListenerCopyFrame" parent="UIParent" toplevel="true" enableMouse="true" movable="true" 
+                              resizable="true"  hidden="true" frameStrata="DIALOG">
+   
+    <!-- Default size is overridden by lua? -->
+    <Size x="300" y="400"/>
+		<ResizeBounds>
+			<minResize>
+				<AbsDimension x="100" y="200"/>
+			</minResize>
+		</ResizeBounds>
+    <Anchors>
+      <Anchor point="CENTER" x="0" y="0" />
+    </Anchors>
+    
+    <Layers>
+    
+      <!-- Backdrop -->
+      <Layer level="BACKGROUND">
+        <Texture parentKey="bg" setallpoints="true">
+          <Color b="0.0" r="0.0" g="0.0" a="0.4"/>
+        </Texture>
+      </Layer>
+    </Layers>
+    
+    <Scripts>
+      <OnLoad>
+        ListenerAddon.Frame.CraftEdges( self, 2 )
+        for _,edge in pairs( self.edges ) do
+          edge:SetColorTexture( 0, 0, 0, 0.2 )
+        end
+        
+        table.insert( UISpecialFrames, self )
+      </OnLoad>
+      <OnShow>
+        self.close_button:SetFrameLevel( self.text:GetFrameLevel()+1)
+      </OnShow>
+    </Scripts>
+    
+    <Frames>
+    
+      <!-- The resize thumb. 
+      <Button parentKey="resize_thumb" hidden="false">
+				<Size x="12" y="12"/>
+        <Anchors>
+          <Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
+        </Anchors>
+				<Scripts>
+					<OnMouseDown>
+            self:GetParent():StartSizing( "BOTTOMRIGHT" )
+					</OnMouseDown>
+					<OnMouseUp>
+            self:GetParent():StopMovingOrSizing()
+					</OnMouseUp>
+				</Scripts>
+				<NormalTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Up"/>
+				<HighlightTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Highlight"/>
+				<PushedTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Down"/>
+      </Button>-->
+      
+      <!-- The main copybox. -->
+      <ScrollFrame parentKey="scroller" inherits="UIPanelScrollFrameTemplate">
+        <Anchors>
+          <Anchor point="TOPLEFT" x="1" y="-1"/>
+          <Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
+        </Anchors>
+        <Scripts>
+          <OnLoad>
+            self:EnableMouseWheel( true )
+          </OnLoad>
+        </Scripts>
+        <ScrollChild>
+          <EditBox parentKey="text" multiLine="true" autoFocus="false">
+            
+            <Scripts>
+              <OnLoad>
+                self:SetSize( self:GetParent():GetWidth(), self:GetParent():GetHeight() )
+                self:GetParent():GetParent().text = self
+                ScrollingEdit_OnCursorChanged(self, 0, 0, 0, 0)
+              </OnLoad>
+              <OnTextChanged>
+                ScrollingEdit_OnTextChanged(self, self:GetParent())
+              </OnTextChanged>
+              <OnCursorChanged function="ScrollingEdit_OnCursorChanged"/>
+              <OnUpdate>
+                ScrollingEdit_OnUpdate( self, elapsed, self:GetParent() )
+              </OnUpdate>
+              <OnEscapePressed>
+                EditBox_ClearFocus( self )
+                self:GetParent():GetParent():Hide()
+              </OnEscapePressed>
+            </Scripts>
+						<FontString inherits="GameFontHighlightSmall"/>
+          </EditBox>
+        </ScrollChild>
+      </ScrollFrame>
+      
+      <ListenerBarButton parentKey="close_button">
+        <Anchors>
+          <Anchor point="TOPRIGHT" x="0" y="0"/>
+        </Anchors>
+        <Scripts>
+          <OnLoad>
+            self:SetTexture( 0 )
+            
+          </OnLoad>
+          <OnClick>
+            self:GetParent():Hide()
+          </OnClick>
+        </Scripts>
+      </ListenerBarButton>
+    </Frames>
+  </Frame>
+</Ui>
+
+
+
+
+
+
+
+

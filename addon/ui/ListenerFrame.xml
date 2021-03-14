@@ -1,0 +1,264 @@
+﻿<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+  <Script file="ListenerFrame.lua"/>
+  <Script file="ListenerFrameMenu.lua"/>
+  
+  <!-- ListenerFrame definition. -->
+  <Frame name="ListenerFrameTemplate" parent="UIParent" toplevel="true" enableMouse="true" movable="true" 
+                              resizable="true"  hidden="false"     frameStrata="BACKGROUND" 
+                              virtual="true">
+                              
+    <!-- Default size is overridden by lua. -->
+    <Size x="200" y="300"/>
+		<ResizeBounds>
+			<minResize>
+				<AbsDimension x="200" y="100"/>
+			</minResize>
+		</ResizeBounds>
+    <Anchors>
+      <Anchor point="CENTER" x="0" y="0" />
+    </Anchors>
+    
+    <Layers>
+    
+      <!-- Backdrop -->
+      <Layer level="BACKGROUND">
+        <Texture parentKey="bg" setallpoints="true">
+          <Color b="0.0" r="0.0" g="0.0" a="0.25"/>
+        </Texture>
+      </Layer>
+      
+      
+      <Layer level="ARTWORK">
+        <!-- The line that separates new messages. -->
+        <Texture parentKey="readmark" hidden="true">
+          <Size y="1"/>
+          <Anchors>
+            <Anchor point="LEFT" x="1" />
+            <Anchor point="RIGHT" x="-1" />
+          </Anchors>
+          <Color b="0.0" r="0.0" g="0.0" a="0.25"/>
+        </Texture>
+      </Layer>
+    </Layers>
+    
+    <Scripts>
+      <OnLoad>      ListenerAddon.Frame.OnLoad(self) </OnLoad> 
+      <OnEnter>     ListenerAddon.Frame.OnEnter(self) </OnEnter>
+      <OnLeave>     ListenerAddon.Frame.OnLeave(self) </OnLeave>
+      <OnMouseDown> ListenerAddon.Frame.OnMouseDown( self, button ) </OnMouseDown>
+      <OnMouseUp>   ListenerAddon.Frame.OnMouseUp( self, button ) </OnMouseUp>
+      <OnUpdate>    ListenerAddon.Frame.OnUpdate(self) </OnUpdate>
+    </Scripts>
+    
+    <Frames>
+      <!-- Titlebar -->
+      <Frame name="$parentBar2" parentKey="bar2" enableMouse="true" hidden="true">
+        <Anchors>
+          <Anchor point="TOPLEFT" x="0" y="0" />
+          <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT"><Offset x="0" y="-15"/></Anchor>
+        </Anchors>
+        
+        <Layers>
+          <Layer level="BACKGROUND">
+            <Texture parentKey="bg" setallpoints="true">
+              <Color b="0.0" r="0.0" g="0.0" a="0.25"/>
+            </Texture>
+          </Layer>
+        </Layers>
+        
+        <Scripts>
+          <OnLoad>
+            self:RegisterForDrag( "LeftButton" )
+          </OnLoad>
+          <OnMouseDown>
+            ListenerAddon.Frame.BarMouseDown( self:GetParent() )
+          </OnMouseDown>
+          <OnMouseUp>
+            ListenerAddon.Frame.BarMouseUp( self:GetParent() )
+          </OnMouseUp>
+          <OnEnter>
+            self:GetParent():MouseOn()
+          </OnEnter>
+          <OnLeave>
+            self:GetParent():MouseOff()
+          </OnLeave>
+          <OnDragStart>
+            ListenerAddon.Frame.BarDragStart( self:GetParent() )
+          </OnDragStart>
+          <OnDragStop>
+            ListenerAddon.Frame.BarDragStop( self:GetParent() )
+          </OnDragStop>
+        </Scripts>
+        
+        <Frames>
+          <!-- Title text -->
+          <ListenerTextButton parentKey="title" name="$parentTitleButton">
+            <Size x="100"/>
+            <Anchors>
+              <Anchor point="TOP"/>
+              <Anchor point="BOTTOM"/>
+              <Anchor point="LEFT" x="0"/>
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self.auto_size = true
+                self.auto_size_padding = 16
+                self:SetText( "" )
+                self:RegisterForClicks( "LeftButtonUp", "RightButtonUp" )
+              </OnLoad>
+              <OnClick>
+                
+                ListenerAddon.Frame.TogglePlayerClicked( self:GetParent():GetParent(), button )
+              </OnClick>
+              <OnEnter>
+                self:GetParent():GetParent():MouseOn()
+              </OnEnter>
+              <OnLeave>
+                self:GetParent():GetParent():MouseOff()
+              </OnLeave>
+            </Scripts>
+          </ListenerTextButton>
+          
+          <!-- X button -->
+          <ListenerBarButton parentKey="close_button">
+            <Anchors>
+              <Anchor point="TOPRIGHT" x="0" y="0"/>
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self:SetTexture( 0 )
+              </OnLoad>
+              <OnClick>
+                ListenerAddon.Frame.CloseClicked( self:GetParent():GetParent(), button )
+              </OnClick>
+              <OnEnter>
+                self:GetParent():GetParent():MouseOn()
+              </OnEnter>
+              <OnLeave>
+                self:GetParent():GetParent():MouseOff()
+              </OnLeave>
+            </Scripts>
+          </ListenerBarButton>
+          
+          <!-- EYE button -->
+          <ListenerBarButton parentKey="hidden_button">
+            <Anchors>
+              <Anchor point="TOPRIGHT" x="-15" y="0"/>
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                self:SetTexture( 2 )
+              </OnLoad>
+              <OnClick>
+                ListenerAddon.Frame.ShowHiddenClicked( self:GetParent():GetParent(), button )
+              </OnClick>
+              <OnEnter>
+                self:GetParent():GetParent():MouseOn()
+              </OnEnter>
+              <OnLeave>
+                self:GetParent():GetParent():MouseOff()
+              </OnLeave>
+            </Scripts>
+          </ListenerBarButton>
+        </Frames>
+      </Frame>
+      
+      <!-- The mark at the bottom of the chatbox to 
+           show if the user is not scrolled all the way down. -->
+      <Frame name="$parentScrollmark" parentKey="scrollmark" hidden="true" enableMouse="false">
+        <Anchors>
+          <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT"><Offset x="1" y="3"/></Anchor>
+          <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT"><Offset x="-1" y="1"/></Anchor>
+        </Anchors>
+        <Layers>
+          <Layer setAllPoints="true">
+            <Texture parentKey="tex">
+              
+              <Color r="1.0" g="1.0" b="1.0" a="0.25" />
+            </Texture>
+          </Layer>
+        </Layers>
+      </Frame>
+      
+      <!-- The resize thumb that appears when shift is held. -->
+      <Button name="$parentResizeButton" parentKey="resize_thumb" hidden="true">
+        
+				<Size x="12" y="12"/>
+        <Anchors>
+          <Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
+        </Anchors>
+				<Scripts>
+					<OnMouseDown>
+            ListenerAddon.Frame.ResizeThumb_OnMouseDown( self, button )
+					</OnMouseDown>
+					<OnMouseUp>
+            ListenerAddon.Frame.ResizeThumb_OnMouseUp( self, button )
+					</OnMouseUp>
+          <OnEnter>
+            self:GetParent():MouseOn()
+          </OnEnter>
+          <OnLeave>
+            self:GetParent():MouseOff()
+          </OnLeave>
+				</Scripts>
+				<NormalTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Up"/>
+				<HighlightTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Highlight"/>
+				<PushedTexture file="Interface\ChatFrame\UI-ChatIM-SizeGrabber-Down"/>
+      </Button>
+      
+      <!-- The main chatbox. -->
+      <ScrollingMessageFrame name="$parentChat" parentKey="chatbox" maxlines="300" displayduration="300" nonspacewrap="true">
+        <Anchors>
+          <Anchor point="LEFT"   x="2" y="-6"/>
+          <Anchor point="RIGHT"  x="-2" y="-6"/>
+          <Anchor point="TOP"    x="0" y="-3"/>
+          <Anchor point="BOTTOM" x="0" y="3"/>
+        </Anchors>
+       
+        <Layers>
+          <Layer level="OVERLAY">
+            <!-- The line that separates new messages. -->
+            <Texture parentKey="highlight" hidden="true">
+              <Size y="1"/>
+              <Anchors>
+                <Anchor point="LEFT" x="0" />
+                <Anchor point="RIGHT" x="0" />
+              </Anchors>
+              <Color b="0.1" r="0.1" g="0.1" a="1.0"/>
+            </Texture>
+          </Layer>
+        </Layers>
+        
+				<Scripts>
+          <OnLoad>
+            self:SetClipsChildren( true )
+            self:SetJustifyH( "LEFT" )
+            self:EnableMouseWheel( true )
+            self:SetHyperlinksEnabled( true )
+            self:SetIndentedWordWrap( true )
+            self:SetFading( false )
+            
+            self.highlight:SetBlendMode( "ADD" )
+          </OnLoad>
+          <OnMouseWheel>
+            ListenerAddon.Frame.OnChatboxScroll( self:GetParent(), delta )
+          </OnMouseWheel>
+          <OnHyperlinkClick>
+            ListenerAddon.Frame.OnChatboxHyperlinkClick( self:GetParent(), link, text, button )
+          </OnHyperlinkClick>
+        </Scripts>
+      </ScrollingMessageFrame>
+      
+      
+      
+    </Frames>
+  </Frame>
+</Ui>
+
+
+
+
+
+
+
+
