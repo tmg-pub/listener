@@ -34,7 +34,7 @@
           edge:SetColorTexture( 0, 0, 0, 0.2 )
         end
         
-        table.insert( UISpecialFrames, self )
+        table.insert( UISpecialFrames, self:GetName() )
       </OnLoad>
       <OnShow>
         self.close_button:SetFrameLevel( self.text:GetFrameLevel()+1)
