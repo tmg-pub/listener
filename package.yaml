@@ -1,6 +1,5 @@
-project-id: 100697
+curse-project-id: 100697
 name: Listener
-version: 2.2.1
 export:
   Listener: addon
   Listener/libs: libs

@@ -557,7 +557,7 @@ function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8,
 		
 		if not skipfilters then
 			for _, filterFunc in next, filters do
-				local block, na1, na2, na3, na4, na5, na6, na7, na8, na9, na10, na11, na12, na13, na14 = filterFunc( ListenerFrameChat, "CHAT_MSG_"..event, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 )
+				local block, na1, na2, na3, na4, na5, na6, na7, na8, na9, na10, na11, na12, na13, na14 = filterFunc( ListenerFrame1Chat, "CHAT_MSG_"..event, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 )
 				if( block ) then
 					return
 				elseif( na1 and type(na1) == "string" ) then
