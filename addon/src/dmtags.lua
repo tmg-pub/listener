@@ -80,7 +80,9 @@ end
 --
 function Me.LoadFont()
 	local font = SharedMedia:Fetch( "font", Main.db.profile.dmtags.font.face )
-	ListenerDMTagFont:SetFont( font, Main.db.profile.dmtags.font.size )
+	DEB1 = font
+	DEB2 = 'hi'
+	ListenerDMTagFont:SetFont( font, Main.db.profile.dmtags.font.size, "" )
 	ListenerDMTagFont:SetShadowColor( 0,0,0,0 )
 end
 

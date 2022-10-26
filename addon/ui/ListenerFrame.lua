@@ -709,7 +709,7 @@ function Method:ApplyChatOptions()
 	elseif outline == 3 then
 		outline = "THICKOUTLINE"
 	else
-		outline = nil
+		outline = ""
 	end
 	face = SharedMedia:Fetch( "font", face )
 	
@@ -1817,6 +1817,6 @@ function Me.ApplyGlobalOptions()
 	
 	-- bar font
 	local font = SharedMedia:Fetch( "font", Main.db.profile.frame.barfont.face )
-	ListenerBarFont:SetFont( font, Main.db.profile.frame.barfont.size )
+	ListenerBarFont:SetFont( font, Main.db.profile.frame.barfont.size, "" )
 	
 end

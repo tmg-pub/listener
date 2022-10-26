@@ -171,8 +171,8 @@
           <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT"><Offset x="-1" y="1"/></Anchor>
         </Anchors>
         <Layers>
-          <Layer setAllPoints="true">
-            <Texture parentKey="tex">
+          <Layer>
+            <Texture parentKey="tex" setAllPoints="true">
               
               <Color r="1.0" g="1.0" b="1.0" a="0.25" />
             </Texture>
@@ -207,7 +207,7 @@
       </Button>
       
       <!-- The main chatbox. -->
-      <ScrollingMessageFrame name="$parentChat" parentKey="chatbox" maxlines="300" displayduration="300" nonspacewrap="true">
+      <ScrollingMessageFrame name="$parentChat" parentKey="chatbox" nonspacewrap="true">
         <Anchors>
           <Anchor point="LEFT"   x="2" y="-6"/>
           <Anchor point="RIGHT"  x="-2" y="-6"/>
@@ -237,6 +237,8 @@
             self:SetHyperlinksEnabled( true )
             self:SetIndentedWordWrap( true )
             self:SetFading( false )
+            self:SetMaxLines( 300 )
+            -- Unknown how to do this or if we need it: self:SetDisplayDuration( 300 )
             
             self.highlight:SetBlendMode( "ADD" )
           </OnLoad>
@@ -254,11 +256,3 @@
     </Frames>
   </Frame>
 </Ui>
-
-
-
-
-
-
-
-
