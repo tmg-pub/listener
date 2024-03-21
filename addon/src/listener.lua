@@ -130,6 +130,17 @@ function Main:OnInitialize()
 end
 
 -------------------------------------------------------------------------------
+-- This is ugly. In the future we need to move to using full names for everything. I'm not
+-- sure why we decided to ambiguate things in the first place.
+function Main.Ambiguate(name)
+	local m = name:match("(.*)%-" .. Main.realm .. "$")
+	if m then
+		return m
+	end
+	return name
+end
+
+-------------------------------------------------------------------------------
 -- This function cleans up the chat history. Done on load or reload.
 --
 -- Any chat entries that are deemed "old" are removed. If all chat history
@@ -745,7 +756,7 @@ function Main.AddChatHistory( sender, event, message, language, guid, channel )
 	
 	-- Strip realm if they're on the same realm.
 	if sender:sub(1,1) ~= "@" then
-		sender = Ambiguate( sender, "all" )
+		sender = Main.Ambiguate( sender, "all" )
 	end
 	
 	-- Update the guidmap. Right now, this is basically just used to
