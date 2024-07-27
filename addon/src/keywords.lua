@@ -66,7 +66,7 @@ local function ChatFilter( self, event, msg, sender, ... )
 	
 	-- Don't filter player's own text.
 	if bnet and bnet > 0 and BNIsSelf( bnet ) then return end
-	if Ambiguate( sender, "all" ) == UnitName("player") then return end
+	if Main.Ambiguate( sender, "all" ) == UnitName("player") then return end
 	
 	local replaced = {}
 	
