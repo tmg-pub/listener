@@ -7,7 +7,7 @@
 
 -- We grab the version from the TOC file cache.
 --
-local VERSION = GetAddOnMetadata( "Listener", "Version" )
+local VERSION = C_AddOns.GetAddOnMetadata( "Listener", "Version" )
 
 -------------------------------------------------------------------------------
 ListenerAddon = LibStub("AceAddon-3.0"):NewAddon( "Listener", 
