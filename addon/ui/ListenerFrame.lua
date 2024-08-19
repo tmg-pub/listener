@@ -471,6 +471,15 @@ function Method:FormatChatMessage( e )
 	
 	-- get icon and name 
 	local name, shortname, icon, color = LibRPNames.Get( e.s, Main.guidmap[e.s] )
+
+	-- let TRP (if it's loaded) boost the contrast of the name color if it's too dark for the selected background
+	if TRP3_API then
+		local classColor = TRP3_API.CreateColorFromHexString(color);
+		local listenerColor = TRP3_API.CreateColor(unpack(self.frameopts.color.bg or self.baseopts.color.bg));
+		local readableColor = TRP3_API.GenerateReadableColor(classColor, listenerColor);
+		color = readableColor:GenerateHexColor();
+	end
+
 	if Main.db.profile.shorten_names then
 		name = shortname
 	end
