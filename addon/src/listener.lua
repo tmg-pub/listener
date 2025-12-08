@@ -544,8 +544,8 @@ function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8,
                          a9, a10, a11, guid, a13, a14 )
 						 
 	if sender == "" then return end
-	
-	local filters = ChatFrame_GetMessageEventFilters( event )
+
+	local filters = ChatFrameUtil and ChatFrameUtil.GetMessageEventFilters(event) or ChatFrame_GetMessageEventFilters(event)
 	event = event:sub( 10 )
 	
 	if event:find( "CHANNEL" ) and IGNORED_CHANNELS[a9:lower()] then
@@ -567,21 +567,27 @@ function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8,
 		end
 		
 		if not skipfilters then
-			for _, filterFunc in next, filters do
-				local block, na1, na2, na3, na4, na5, na6, na7, na8, na9, na10, na11, na12, na13, na14 = filterFunc( ListenerFrame1Chat, "CHAT_MSG_"..event, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 )
-				if( block ) then
-					return
-				elseif( na1 and type(na1) == "string" ) then
-					local skip = false
-					if event == "EMOTE" and message:sub(1,2) == "'s" and na1:sub(1,2) ~= "'s" then
-						skip = true -- block out trp's ['s] hack
-					end
-					if event == "EMOTE" and message:sub(1,2) == ", " and na1:sub(1,2) ~= ", " then
-						skip = true -- block out trp's [, ] hack
-					end
-					  
-					if not skip then
-						message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 = na1, na2, na3, na4, na5, na6, na7, na8, na9, na10, na11, na12, na13, na14
+
+			-- FIX: In 11.2.7, the table structure changed
+			-- The keys are now the filter functions themselves
+			for filterFunc, v in next, filters do
+				-- Only call if the key is actually a function
+				if type(filterFunc) == "function" then
+					local block, na1, na2, na3, na4, na5, na6, na7, na8, na9, na10, na11, na12, na13, na14 = filterFunc( ListenerFrame1Chat, "CHAT_MSG_"..event, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 )
+					if( block ) then
+						return
+					elseif( na1 and type(na1) == "string" ) then
+						local skip = false
+						if event == "EMOTE" and message:sub(1,2) == "'s" and na1:sub(1,2) ~= "'s" then
+							skip = true -- block out trp's ['s] hack
+						end
+						if event == "EMOTE" and message:sub(1,2) == ", " and na1:sub(1,2) ~= ", " then
+							skip = true -- block out trp's [, ] hack
+						end
+
+						if not skip then
+							message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 = na1, na2, na3, na4, na5, na6, na7, na8, na9, na10, na11, na12, na13, na14
+						end
 					end
 				end
 			end

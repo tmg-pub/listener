@@ -196,7 +196,12 @@ end
 --
 function Main.InitKeywords()
 	Main.LoadKeywordsConfig()
+
+	-- Use the appropriate API based on what's available
+	local AddFilter = ChatFrameUtil and ChatFrameUtil.AddMessageEventFilter or ChatFrame_AddMessageEventFilter
+
 	for i, event in ipairs(CHAT_EVENTS) do
-		ChatFrame_AddMessageEventFilter( "CHAT_MSG_" .. event, ChatFilter );
+		AddFilter("CHAT_MSG_" .. event, ChatFilter)
 	end
 end
+
