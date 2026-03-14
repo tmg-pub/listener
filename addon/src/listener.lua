@@ -597,8 +597,11 @@ function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8,
 			-- FIX: In 11.2.7, the table structure changed
 			-- The keys are now the filter functions themselves
 			for filterFunc, v in next, filters do
-				-- Only call if the key is actually a function
-				if type(filterFunc) == "function" then
+				-- Only call if the key is actually a function.
+				-- Skip our own filter to prevent infinite recursion:
+				-- ChatFrameFilter is registered via ChatFrame_AddMessageEventFilter,
+				-- so it appears in this table and would call OnChatMsg again.
+				if type(filterFunc) == "function" and filterFunc ~= Main.ChatFrameFilter then
 					local block, na1, na2, na3, na4, na5, na6, na7, na8, na9, na10, na11, na12, na13, na14 = filterFunc( ListenerFrame1Chat, "CHAT_MSG_"..event, message, sender, language, a4, a5, a6, a7, a8, a9, a10, a11, guid, a13, a14 )
 					if( block ) then
 						return
