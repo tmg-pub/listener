@@ -1,8 +1,1 @@
-to build, checkout forgepush
-
-PS C:\repos\listener> py ..\forgepush\forgepush.py
-Cleanup...
-Copying exports.
-Post-processing files.
-
-.forgepush now contains the staged addon folder
+This addon is designed to keep your brain from melting, at least in one way: it lets you view the chat (and other channel) messages from the targeted or moused-over player. It's especially useful in very busy situations!

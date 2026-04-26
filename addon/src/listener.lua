@@ -394,6 +394,7 @@ function Main.CheckPoke( msg, sender )
 	if loc == "enUS" then
 		-- Currently only supporting english.
 		if msg:find( " you" ) then
+			if not canaccessvalue(UnitName( "target" )) then return end
 			if Main.FullName('target') == sender then return end
 			
 			-- There are a handful of emotes that contain " you" regardless
@@ -428,6 +429,8 @@ end
 -- Hook for system messages. (CHAT_MSG_SYSTEM)
 --
 function Main:OnSystemMsg( event, message )
+
+	if not canaccessvalue(message) then return end --JK
 
 	do
 		-- check our special patterns to split this event
@@ -478,6 +481,10 @@ end
 function Main:OnChatMsgTextEmote( event, message, sender, language, 
 								  a4, a5, a6, a7, a8, a9, a10, a11, 
 								  guid, a13, a14 )
+
+	if not canaccessallvalues(event, message, sender, language, 
+								  a4, a5, a6, a7, a8, a9, a10, a11, 
+								  guid, a13, a14) then return end
 								  
 	if guid ~= UnitGUID( "player" ) then
 		local realm = message:match( sender .. "%-([A-Za-z0-9']+)" )
@@ -568,6 +575,9 @@ end
 --
 function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8, 
                          a9, a10, a11, guid, a13, a14 )
+
+	if not canaccessallvalues(event, message, sender, language, a4, a5, a6, a7, a8, 
+                         a9, a10, a11, guid, a13, a14) then return end
 						 
 	if sender == "" then return end
 
@@ -920,7 +930,7 @@ function Main.AddChatHistory( sender, event, message, language, guid, channel )
 	end
 	
 	-- if the player's target emotes, then beep+flash
-	if (Main.db.profile.notify_target_sound or Main.db.profile.notify_target_flash)
+	if (Main.db.profile.notify_target_sound or Main.db.profile.notify_target_flash) and canaccessvalue(UnitName( "target" ))
 	   and not Main.Frame.SKIP_BEEP[entry.e]
 	   and Main.frames[2]:EntryFilter( entry ) -- snooper filter
        and Main.FullName("target") == sender

@@ -54,7 +54,7 @@ function Main.UpdateProbe()
 	end
 	
 	if not UnitIsPlayer( unit ) then unit = nil end
-	if unit then 
+	if unit and canaccessvalue(UnitName( unit )) then
 		unitname = Main.FullName( unit )
 		unitguid = UnitGUID( unit )
 	end

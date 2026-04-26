@@ -117,6 +117,7 @@ function Me.HookFrames()
 	while true do
 		frame = EnumerateFrames( frame )
 		if not frame then break end
+		if not canaccessvalue(UnitName( unit )) then break end
 		
 		if frame:IsVisible() and frame:HasScript( "OnClick" ) 
 		   and frame:GetScript( "OnClick" ) == SecureUnitButton_OnClick then
