@@ -34,6 +34,266 @@ local IGNORED_CHANNELS = {
 }
 
 -------------------------------------------------------------------------------
+-- NPC chat events (with the CHAT_MSG_ prefix stripped). These are registered
+-- as real events rather than ChatFrame message filters, because filters only
+-- fire when a chat tab is set to display creature messages.
+--
+local NPC_EVENTS = {
+	MONSTER_SAY       = true;
+	MONSTER_YELL      = true;
+	MONSTER_EMOTE     = true;
+	MONSTER_WHISPER   = true;
+	MONSTER_PARTY     = true;
+	RAID_BOSS_EMOTE   = true;
+	RAID_BOSS_WHISPER = true;
+}
+
+
+local function TrimString( value )
+	if strtrim then return strtrim( value ) end
+	return (value:gsub( "^%s+", "" ):gsub( "%s+$", "" ))
+end
+
+local function GetShortNPCName( name )
+	local short = name and name:match( "%S+" )
+	if short and #short >= 4 then return short end
+	return name
+end
+
+function Main.NormalizeIconPath( icon )
+	if icon == nil or icon == "" then return nil end
+
+	local iconType = type( icon )
+	if iconType == "number" then return icon end
+	if iconType ~= "string" then return nil end
+
+	icon = icon:match( "^|T([^:|]+)" ) or icon
+	icon = icon:gsub( "^Interface[\\/][Ii][Cc][Oo][Nn][Ss][\\/]", "" )
+	if icon == "" then return nil end
+
+	return icon
+end
+
+function Main.FormatIconMarkup( icon, zoom )
+	icon = Main.NormalizeIconPath( icon )
+	if not icon then return "" end
+
+	local texture = tostring( icon )
+	if type( icon ) ~= "number" and not texture:match( "^%d+$" ) and not texture:lower():match( "^interface[\\/]" ) then
+		texture = "Interface\\Icons\\" .. texture
+	end
+
+	if zoom then
+		return "|T" .. texture .. ":0:0:0:0:100:100:10:90:10:90:255:255:255|t "
+	end
+
+	return "|T" .. texture .. ":0|t "
+end
+
+function Main.StripPipeEmotePrefix( message )
+	if type( message ) ~= "string" then return nil end
+
+	if message:sub( 1, 2 ) == "| " then
+		return message:sub( 3 )
+	end
+
+	return nil
+end
+
+local function GetTRPNPCMessageName( lineID )
+	if lineID == nil then return nil end
+
+	local trp = _G.TRP3_API
+	if not trp or not trp.chat then return nil end
+	if not trp.chat.getNPCMessageID or not trp.chat.getNPCMessageName then return nil end
+	if trp.chat.getNPCMessageID() ~= lineID then return nil end
+
+	local replacement = trp.chat.getNPCMessageName()
+	if type( replacement ) == "string" and replacement ~= "" then
+		return replacement
+	end
+end
+
+local function GetTRPOwnershipEmotePrefix( lineID )
+	if lineID == nil then return nil end
+
+	local trp = _G.TRP3_API
+	if not trp or not trp.chat or not trp.chat.getOwnershipNameID then return nil end
+
+	if trp.chat.getOwnershipNameID() == lineID then
+		return "'s "
+	end
+end
+
+local function GetTRPNPCTalkPatterns()
+	local patterns = {}
+	local trp = _G.TRP3_API
+	local loc = trp and trp.loc
+
+	local function add( pattern )
+		if type( pattern ) == "string" and pattern ~= "" then
+			patterns[pattern] = true
+		end
+	end
+
+	if loc then
+		add( loc.NPC_TALK_SAY_PATTERN )
+		add( loc.NPC_TALK_YELL_PATTERN )
+		add( loc.NPC_TALK_WHISPER_PATTERN )
+	end
+
+	add( "says:" )
+	add( "yells:" )
+	add( "whispers:" )
+
+	return patterns
+end
+
+local function MatchTRPNPCSpeech( message )
+	if type( message ) ~= "string" then return nil end
+
+	for talkType in pairs( GetTRPNPCTalkPatterns() ) do
+		local start = message:find( talkType, 1, true )
+		while start do
+			if start > 2 and message:sub( start - 1, start - 1 ):match( "%s" ) then
+				local name = TrimString( message:sub( 1, start - 2 ) )
+				if name ~= "" then
+					return name, message:sub( start )
+				end
+			end
+			start = message:find( talkType, start + 1, true )
+		end
+	end
+end
+
+local function GetProfileNPCInfo( profile, fallbackName )
+	local data = profile and profile.data
+	if not data then return nil end
+
+	local name = data.NA or fallbackName
+	local icon = Main.NormalizeIconPath( data.IC )
+	local color = data.NH
+
+	if color and color ~= "" then
+		color = "ff" .. color
+	else
+		color = nil
+	end
+
+	return name, GetShortNPCName( name ), icon, color
+end
+
+local function ResolveTRPNPCSpeaker( rawName, senderID )
+	rawName = TrimString( rawName or "" )
+	local bracketName = rawName:match( "^%[(.-)%]$" )
+
+	if not bracketName then
+		return rawName, GetShortNPCName( rawName )
+	end
+
+	local trp = _G.TRP3_API
+	local companions = trp and trp.companions
+
+	if companions and companions.player and companions.player.getProfiles then
+		for _, profile in pairs( companions.player.getProfiles() ) do
+			if profile.data and profile.data.NA == bracketName then
+				return GetProfileNPCInfo( profile, bracketName )
+			end
+		end
+	end
+
+	if companions and companions.register and companions.register.getProfiles then
+		for _, profile in pairs( companions.register.getProfiles() ) do
+			local isMaster = not senderID
+			if not isMaster and profile.links and trp and trp.utils and trp.utils.str and trp.utils.str.companionIDToInfo then
+				for companionFullID, _ in pairs( profile.links ) do
+					if trp.utils.str.companionIDToInfo( companionFullID ) == senderID then
+						isMaster = true
+						break
+					end
+				end
+			end
+			if isMaster and profile.data and profile.data.NA == bracketName then
+				return GetProfileNPCInfo( profile, bracketName )
+			end
+		end
+	end
+
+	return bracketName, GetShortNPCName( bracketName )
+end
+
+local function ParseTRPFormattedSpeaker( formattedName )
+	if type( formattedName ) ~= "string" then return nil end
+
+	local icon = Main.NormalizeIconPath( formattedName:match( "|T([^:|]+)" ) )
+	local color = formattedName:match( "|c(%x%x%x%x%x%x%x%x)" )
+	local name = formattedName:gsub( "|T.-|t%s*", "" )
+	name = name:gsub( "|c%x%x%x%x%x%x%x%x", "" )
+	name = name:gsub( "|r", "" )
+	name = TrimString( name )
+
+	if name == "" then return nil end
+	return name, GetShortNPCName( name ), icon, color
+end
+
+function Main.GetPipeEmoteInfo( message, senderID )
+	local body = Main.StripPipeEmotePrefix( message )
+	if body == nil then return nil end
+
+	local info = {
+		message = body;
+		anonymous = true;
+	}
+
+	local speaker, speech = MatchTRPNPCSpeech( body )
+	if speaker and speech then
+		local name, shortname, icon, color = ResolveTRPNPCSpeaker( speaker, senderID )
+		info.message = speech
+		info.anonymous = nil
+		info.name = name
+		info.shortname = shortname
+		info.icon = icon
+		info.color = color
+	end
+
+	return info
+end
+
+function Main.GetTRPNPCMessageInfo( message, lineID )
+	local replacement = GetTRPNPCMessageName( lineID )
+	if not replacement then return nil end
+
+	if message == " " then
+		return Main.GetPipeEmoteInfo( "| " .. replacement ) or {
+			message = replacement;
+			anonymous = true;
+		}
+	end
+
+	local name, shortname, icon, color = ParseTRPFormattedSpeaker( replacement )
+	if not name then return nil end
+
+	return {
+		message = message;
+		name = name;
+		shortname = shortname;
+		icon = icon;
+		color = color;
+	}
+end
+
+function Main.RecoverTRPPipeEmote( message, lineID )
+	if message ~= " " then return message end
+
+	local replacement = GetTRPNPCMessageName( lineID )
+	if replacement then
+		return "| " .. replacement
+	end
+
+	return message
+end
+
+-------------------------------------------------------------------------------
 -- The following is some serious mojo to convert localized strings into
 -- matching patterns. A feeble attempt at providing message recognition that
 -- works on any client.
@@ -394,6 +654,7 @@ function Main.CheckPoke( msg, sender )
 	if loc == "enUS" then
 		-- Currently only supporting english.
 		if msg:find( " you" ) then
+			if not canaccessvalue(UnitName( "target" )) then return end
 			if Main.FullName('target') == sender then return end
 			
 			-- There are a handful of emotes that contain " you" regardless
@@ -428,6 +689,8 @@ end
 -- Hook for system messages. (CHAT_MSG_SYSTEM)
 --
 function Main:OnSystemMsg( event, message )
+
+	if not canaccessvalue(message) then return end --JK
 
 	do
 		-- check our special patterns to split this event
@@ -478,22 +741,34 @@ end
 function Main:OnChatMsgTextEmote( event, message, sender, language, 
 								  a4, a5, a6, a7, a8, a9, a10, a11, 
 								  guid, a13, a14 )
+
+	if not canaccessallvalues(event, message, sender, language, 
+								  a4, a5, a6, a7, a8, a9, a10, a11, 
+								  guid, a13, a14) then return end
 								  
 	if guid ~= UnitGUID( "player" ) then
 		local realm = message:match( sender .. "%-([A-Za-z0-9']+)" )
 		if realm ~= nil then
 			-- delete trailing "'s"
 			realm = realm:gsub( "'s$", "" )
-			
+
 			sender = sender .. "-" .. realm
 		end
-	end
-	
-	-- something to consider is that chat event filters might
-	-- remove this message, for whatever reason, and it might still
-	-- make a poke sound.
-	if guid ~= UnitGUID( "player" ) then
+
+		-- something to consider is that chat event filters might
+		-- remove this message, for whatever reason, and it might still
+		-- make a poke sound.
 		Main.CheckPoke( message, sender )
+	else
+		-- Standard text emotes (e.g. /hug) don't always hand back the exact
+		-- same sender string that other events use for the local player
+		-- (case/realm formatting can differ, and other chat filters running
+		-- ahead of ours in the ChatFrame filter chain can rewrite it too).
+		-- Since the GUID already confirms this is our own emote, force the
+		-- sender back to our canonical name so it matches the "self" entry
+		-- in the player filter (players[UnitName("player")]) instead of
+		-- being treated like a message from an unrecognized player.
+		sender = Main.FullName( "player" )
 	end
 	
 	-- and then when that's all good and done, we forward it to the normal
@@ -568,23 +843,39 @@ end
 --
 function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8, 
                          a9, a10, a11, guid, a13, a14 )
+
+	if not canaccessallvalues(event, message, sender, language, a4, a5, a6, a7, a8, 
+                         a9, a10, a11, guid, a13, a14) then return end
 						 
 	if sender == "" then return end
 
 	local filters = ChatFrameUtil and ChatFrameUtil.GetMessageEventFilters(event) or ChatFrame_GetMessageEventFilters(event)
 	event = event:sub( 10 )
 	
+	if event == "EMOTE" then
+		message = Main.RecoverTRPPipeEmote( message, a11 )
+	end
+	
 	if event:find( "CHANNEL" ) and IGNORED_CHANNELS[a9:lower()] then
 		-- this channel is ignored and not logged.
 		return
 	end	
+	
+	local originalEmotePrefix
+	if event == "EMOTE" then
+		if message:sub(1, 3) == "'s " then
+			originalEmotePrefix = "'s "
+		elseif message:sub(1, 2) == ", " then
+			originalEmotePrefix = ", "
+		end
+	end
 	
 	if filters then -- in a rare case with very little addons, the filter
 	                -- list may actually be nil
 					
 		local skipfilters = false
 
-		if message:sub(1,3) == "|| " then
+		if event == "EMOTE" and Main.StripPipeEmotePrefix( message ) ~= nil then
 			-- trp hack for npc emotes
 			skipfilters = true
 		elseif message:sub(1,2) == "'s" and event == "EMOTE" then
@@ -619,8 +910,29 @@ function Main:OnChatMsg( event, message, sender, language, a4, a5, a6, a7, a8,
 			end
 		end
 	end
+
+	-- TRP3 removes leading "'s " from emotes and records the line ID so its
+	-- name formatter can append the suffix directly to the displayed name.
+	-- Listener renders from its own stored message instead, so restore the
+	-- prefix from TRP3's public line-ID flag when Listener receives the already
+	-- filtered message.
+	local trpEmotePrefix = originalEmotePrefix or GetTRPOwnershipEmotePrefix( a11 )
+	if event == "EMOTE" and trpEmotePrefix and message:sub(1, #trpEmotePrefix) ~= trpEmotePrefix then
+		message = trpEmotePrefix .. message
+	end
 	
-	Main.AddChatHistory( sender, event, message, language, guid, a9 )
+	local dm_info
+	if event == "EMOTE" then
+		message = Main.RecoverTRPPipeEmote( message, a11 )
+		if Main.db.profile.trp_emotes then
+			dm_info = Main.GetPipeEmoteInfo( message, sender ) or Main.GetTRPNPCMessageInfo( message, a11 )
+			if dm_info then
+				message = dm_info.message
+			end
+		end
+	end
+	
+	Main.AddChatHistory( sender, event, message, language, guid, a9, dm_info )
 end
 
 -------------------------------------------------------------------------------
@@ -780,7 +1092,7 @@ end
 -- This adds a chat event into the chat history.
 --
 -- A lot of stuff happens in here . . .
-function Main.AddChatHistory( sender, event, message, language, guid, channel )
+function Main.AddChatHistory( sender, event, message, language, guid, channel, dm_info )
 	
 	-- discard empty messages (unless the event doesn't have a message).
 	if message == "" and (event ~= "CHANNEL_JOIN" and event ~= "CHANNEL_LEAVE") then return end
@@ -803,6 +1115,9 @@ function Main.AddChatHistory( sender, event, message, language, guid, channel )
 	Main._history_dedupe = Main._history_dedupe or {}
 	local now = GetTime()
 	local key = (event or "") .. "|" .. (sender or "") .. "|" .. (message or "")
+	if dm_info and dm_info.name then
+		key = key .. "|" .. dm_info.name
+	end
 	local last = Main._history_dedupe[key]
 	if last and now - last < 0.5 then
 		return
@@ -884,6 +1199,25 @@ function Main.AddChatHistory( sender, event, message, language, guid, channel )
 		r  = true;              -- unread
 	}
 	
+	if dm_info then
+		entry.dma = dm_info.anonymous
+		entry.dmn = dm_info.name
+		entry.dms = dm_info.shortname
+		entry.dmi = dm_info.icon
+		entry.dmc = dm_info.color
+	end
+
+	-- Actual NPC speech, as opposed to RP dialogue (TRP3 NPC talk, DM tags)
+	-- relayed through a real player's own message, which keeps its
+	-- "Player-..." guid. Monster events are NPC speech even when they don't
+	-- carry a guid; a non-player guid also catches NPCs (e.g. delve
+	-- companions) talking over ordinary channels like PARTY.
+	-- Companion text emotes (Valeera's /point) arrive with no guid at all
+	if NPC_EVENTS[event] or (guid and guid ~= "" and not guid:match( "^Player%-" ))
+	   or (event == "TEXT_EMOTE" and not guid) then
+		entry.npc = true
+	end
+	
 	if event:find( "CHANNEL" ) then
 		if not channel then return end
 		local c = channel:match("^%S+")
@@ -920,7 +1254,7 @@ function Main.AddChatHistory( sender, event, message, language, guid, channel )
 	end
 	
 	-- if the player's target emotes, then beep+flash
-	if (Main.db.profile.notify_target_sound or Main.db.profile.notify_target_flash)
+	if (Main.db.profile.notify_target_sound or Main.db.profile.notify_target_flash) and canaccessvalue(UnitName( "target" ))
 	   and not Main.Frame.SKIP_BEEP[entry.e]
 	   and Main.frames[2]:EntryFilter( entry ) -- snooper filter
        and Main.FullName("target") == sender
@@ -1393,6 +1727,10 @@ function Main:OnEnable()
 		for _,evt in ipairs( chatEvents ) do
 			ChatFrame_AddMessageEventFilter( evt, Main.ChatFrameFilter )
 		end
+	end
+
+	for evt in pairs( NPC_EVENTS ) do
+		Main:RegisterEvent( "CHAT_MSG_" .. evt, "OnChatMsg" )
 	end
 	Main:RegisterEvent( "GUILD_MOTD",                    "OnGuildMOTD" )
 	Main:RegisterEvent( "CHAT_MSG_SYSTEM",               "OnSystemMsg" )

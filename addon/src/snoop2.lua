@@ -27,7 +27,7 @@ local g_update_time = 0
 function Me.Setup()
 
 	Main.RegisterFilterMenu( "SNOOPER",
-		{ "Public", "Party", "Raid", "Raid Warning", "Instance", 
+		{ "Public", "NPC", "Party", "Raid", "Raid Warning", "Instance",
 		  "Guild", "Officer", "Rolls", "Whisper", "Channel", "CrossRP" },
 		function( filter )
 			return Main.frames[2].charopts.filter[filter]
@@ -93,7 +93,7 @@ function Me.OnUpdate( self )
 	
 	if self.frameopts.hidecombat and InCombatLockdown() then return end
 	
-	local name = (IsShiftKeyDown() or self.mouseon) and g_current_name or Main.GetProbed()
+	local name = (IsShiftKeyDown() or self.mouseon) and g_current_name or Main.GetProbed() or Main.GetProbedNPC()
 	if self.frameopts.target_only and not UnitExists( "target" ) then
 		name = nil
 	end
@@ -192,6 +192,9 @@ local MESSAGE_PREFIXES = {
 --
 local function MsgFormatNormal( e, name )
 	local prefix = MESSAGE_PREFIXES[e.e] or ""
+	if e.dmn then
+		return prefix .. name .. " " .. e.m
+	end
 	if e.e == "CHANNEL" then
 		local index = GetChannelName( e.c )
 		if index ~= 0 then
@@ -220,18 +223,23 @@ end
 -- No separator between name and text.
 --
 local function MsgFormatEmote( e, name )
+	if e.dmn then
+		return name .. " " .. e.m
+	end
+	if e.dma then
+		return e.m
+	end
 	-- If they prefix with a pipe, cut off the name and remove the pipes.
 	-- Note that this is specially different from the main window.
 	-- The name is implied in the snooper window, so we don't need 
 	-- to check against the trp_emotes option.
-	-- It's common to prefix with "|" or "||" in emotes to denote that your
+	-- It's common to prefix with "| " in emotes to denote that your
 	-- emote should not consider the name before it.
 	--
-	-- And, pipes are doubled up, because they're wow's escape character.
-	--
-	if e.m:match( "^||" ) then
-		-- cut off pipes and trailing space.
-		return e.m:match( "^|+%s*(.*)" )
+	local pipe_emote = Main.StripPipeEmotePrefix( e.m )
+	if pipe_emote ~= nil then
+		-- cut off pipe and trailing space.
+		return pipe_emote
 	end
 	
 	-- 
@@ -251,9 +259,23 @@ end
 -- <name> <msg> - name is substituted
 --
 local function MsgFormatTextEmote( e, name )
+	if e.dmn then
+		return name .. " " .. e.m
+	end
 	-- Need to convert - to %- to avoid it triggering a pattern and
 	--  invalidating the name match.
 	local msg = e.m:gsub( e.s:gsub("%-","%%-"), name )
+	return msg
+end
+
+-------------------------------------------------------------------------------
+-- NPC emotes carry a %s where the NPC's name goes.
+--
+local function MsgFormatNPCEmote( e, name )
+	local msg, count = e.m:gsub( "%%s", (name:gsub( "%%", "%%%%" )) )
+	if count == 0 then
+		return name .. " " .. e.m
+	end
 	return msg
 end
 
@@ -288,6 +310,9 @@ local MSG_FORMAT_FUNCTIONS = {
 	
 	TEXT_EMOTE = MsgFormatTextEmote;
 	ROLL       = MsgFormatTextEmote;
+
+	MONSTER_EMOTE   = MsgFormatNPCEmote;
+	RAID_BOSS_EMOTE = MsgFormatNPCEmote;
 }
 
 -------------------------------------------------------------------------------
@@ -336,16 +361,22 @@ function Me:FormatChatMessage( e )
 	
 	stamp = timecolor .. stamp .. "|r "
 	
-	local name, shortname, _, color = LibRPNames.Get( e.s, Main.guidmap[e.s] )
+	local custom_speaker = e.dmn ~= nil
+	local name, shortname, color
+	if custom_speaker then
+		name, shortname, color = e.dmn, e.dms or e.dmn, e.dmc
+	else
+		name, shortname, _, color = LibRPNames.Get( e.s, Main.guidmap[e.s] )
+	end
 	if Main.db.profile.shorten_names then
 		name = shortname
 	end
 	
-	if color and self.frameopts.name_colors then
+	if color and (custom_speaker or self.frameopts.name_colors) then
 		name = "|c" .. color .. name .. "|r"
 	end
 	
-	if self.frameopts.enable_mouse then
+	if self.frameopts.enable_mouse and not custom_speaker and not e.npc then
 		-- we only make links for players when the mouse is enabled.
 		name = "|Hplayer:" .. e.s .. "|h" .. name .. "|h"
 	end

@@ -13,6 +13,14 @@ local g_probe_target = nil
 local g_probe_guid   = nil
 
 -------------------------------------------------------------------------------
+-- The NPC being targeted or moused over, tracked separately so that the
+-- player-only probe consumers (window title, click-to-toggle, slash
+-- commands) aren't affected by targeting mobs.
+--
+local g_probe_npc      = nil
+local g_probe_npc_time = 0
+
+-------------------------------------------------------------------------------
 -- This is set to the time when a probe target is found, used for keeping the
 -- target for a small moment after the user is targeting nothing.
 --
@@ -36,6 +44,13 @@ function Main.GetProbed()
 end
 
 -------------------------------------------------------------------------------
+-- Returns the name of the NPC being targeted or moused over, if any.
+--
+function Main.GetProbedNPC()
+	return g_probe_npc
+end
+
+-------------------------------------------------------------------------------
 -- Update function (called periodically).
 --
 function Main.UpdateProbe()
@@ -53,8 +68,15 @@ function Main.UpdateProbe()
 		unit = prefer2
 	end
 	
+	if unit and not UnitIsPlayer( unit ) and canaccessvalue(UnitName( unit )) then
+		g_probe_npc      = UnitName( unit )
+		g_probe_npc_time = GetTime()
+	elseif GetTime() >= g_probe_npc_time + PROBE_TIMEOUT then
+		g_probe_npc = nil
+	end
+
 	if not UnitIsPlayer( unit ) then unit = nil end
-	if unit then 
+	if unit and canaccessvalue(UnitName( unit )) then
 		unitname = Main.FullName( unit )
 		unitguid = UnitGUID( unit )
 	end

@@ -87,6 +87,25 @@ function Me.LoadFont()
 end
 
 -------------------------------------------------------------------------------
+-- Safely test values returned by secure/protected UI APIs.
+--
+-- Newer WoW clients can return "secret" values from protected frames when an
+-- addon has tainted execution. Directly testing those values, e.g.
+-- `if frame:IsVisible() then`, can raise "attempt to perform boolean test on a
+-- secret boolean value". Guard all such tests with canaccessvalue first.
+--
+local function IsAccessible( value )
+	if type( canaccessvalue ) == "function" then
+		return canaccessvalue( value )
+	end
+	return true
+end
+
+local function SafeTruthy( value )
+	return IsAccessible( value ) and value
+end
+
+-------------------------------------------------------------------------------
 -- Enable/disable DM Tags.
 --
 function Me.Enable( enabled )
@@ -118,27 +137,32 @@ function Me.HookFrames()
 		frame = EnumerateFrames( frame )
 		if not frame then break end
 		
-		if frame:IsVisible() and frame:HasScript( "OnClick" ) 
-		   and frame:GetScript( "OnClick" ) == SecureUnitButton_OnClick then
-		   
-			local unit = frame:GetAttribute( "unit" )
-			if unit then
-				if unit:match( "raid[0-9]+" ) or unit:match( "party[1-9]" ) then
-					local name = Main.FullName( unit )
-					
-					if name then
-						if not list[name] then
-							list[name] = {
-								frames = {}
-							}
-						end
+		local visible = frame:IsVisible()
+		local has_onclick = frame:HasScript( "OnClick" )
+		
+		if SafeTruthy( visible ) and SafeTruthy( has_onclick ) then
+			local onclick = frame:GetScript( "OnClick" )
+			
+			if IsAccessible( onclick ) and onclick == SecureUnitButton_OnClick then
+				local unit = frame:GetAttribute( "unit" )
+				
+				if SafeTruthy( unit ) and IsAccessible( UnitName( unit ) ) then
+					if unit:match( "raid[0-9]+" ) or unit:match( "party[1-9]" ) then
+						local name = Main.FullName( unit )
 						
-						table.insert( list[name].frames, frame )
+						if name then
+							if not list[name] then
+								list[name] = {
+									frames = {}
+								}
+							end
+							
+							table.insert( list[name].frames, frame )
+						end
 					end
 				end
+				--thanks Semler!
 			end
-			--thanks Semler!
-			
 		end
 	end
 	

@@ -35,6 +35,7 @@ local IGNORED_CHANNELS = {
 --
 local FILTER_OPTIONS = {
 	Public           = { "SAY", "EMOTE", "TEXT_EMOTE", "YELL" };
+	NPC              = { "NPC" }; -- entries flagged as NPC speech, from any channel
 	Party            = { "PARTY", "PARTY_LEADER" };
 	Raid             = { "RAID", "RAID_LEADER" };
 	["Raid Warning"] = { "RAID_WARNING" };
@@ -94,7 +95,7 @@ local function GetHexCode( color )
 	return string.format( "ff%2x%2x%2x", color[1]*255, color[2]*255, color[3]*255 )
 end
 
-local ENTRY_CHAT_REMAP = { ROLL = "SYSTEM", OFFLINE = "SYSTEM", ONLINE = "SYSTEM" }
+local ENTRY_CHAT_REMAP = { ROLL = "SYSTEM", OFFLINE = "SYSTEM", ONLINE = "SYSTEM", NPC = "MONSTER_SAY" }
 function GetColorCode( event )
 	local info
 	if event:sub(1,1) == "#" then

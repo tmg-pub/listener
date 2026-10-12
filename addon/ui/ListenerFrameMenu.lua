@@ -13,7 +13,7 @@ Me.menu        = nil
 Me.menu_parent = nil
 
 Main.RegisterFilterMenu( "MAIN",
-	{ "Public", "Party", "Raid", "Raid Warning", "Whisper", "Instance", "Guild", "Officer", "Rolls", "Channel", "CrossRP", "Misc" }, 
+	{ "Public", "NPC", "Party", "Raid", "Raid Warning", "Whisper", "Instance", "Guild", "Officer", "Rolls", "Channel", "CrossRP", "Misc" },
 	function( filter )
 		return Me.menu_parent:HasEvent( filter )
 	end,
@@ -362,7 +362,7 @@ function Me.PopulateFrameMenu( level, menuList )
 		info.tooltipText      = L["Default to include players rather than exclude them. Typically you turn this off in crowded areas."]
 		info.tooltipOnButton  = true
 		UIDropDownMenu_AddButton( info, level )
-		
+
 		info = UIDropDownMenu_CreateInfo()
 		info.text             = L["Auto-Popup"]
 		info.notCheckable     = false

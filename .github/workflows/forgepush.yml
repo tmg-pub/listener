@@ -15,10 +15,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # The default GITHUB_TOKEN is read-only unless a job explicitly asks for
+    # more. forgepush.py's --create_github_release step needs write access
+    # to create a release, or it fails with a 403.
+    permissions:
+      contents: write
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 10
 
