@@ -1212,7 +1212,9 @@ function Main.AddChatHistory( sender, event, message, language, guid, channel, d
 	-- "Player-..." guid. Monster events are NPC speech even when they don't
 	-- carry a guid; a non-player guid also catches NPCs (e.g. delve
 	-- companions) talking over ordinary channels like PARTY.
-	if NPC_EVENTS[event] or (guid and guid ~= "" and not guid:match( "^Player%-" )) then
+	-- Companion text emotes (Valeera's /point) arrive with no guid at all
+	if NPC_EVENTS[event] or (guid and guid ~= "" and not guid:match( "^Player%-" ))
+	   or (event == "TEXT_EMOTE" and not guid) then
 		entry.npc = true
 	end
 	
